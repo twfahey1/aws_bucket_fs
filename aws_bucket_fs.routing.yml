@@ -1,0 +1,7 @@
+aws_bucket_fs.test_form:
+  path: '/aws-bucket-fs/form/test'
+  defaults:
+    _form: '\Drupal\aws_bucket_fs\Form\TestForm'
+    _title: 'TestForm'
+  requirements:
+    _access: 'TRUE'
