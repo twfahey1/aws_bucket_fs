@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Contains aws_bucket_fs.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function aws_bucket_fs_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the aws_bucket_fs module.
+    case 'help.page.aws_bucket_fs':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides an AWS bucket as a filesystem. Supports large files direct to S3 via POST.411') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function aws_bucket_fs_theme() {
+  return [
+    'aws_bucket_fs' => [
+      'render element' => 'children',
+    ],
+  ];
+}

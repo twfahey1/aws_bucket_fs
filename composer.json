@@ -1,0 +1,13 @@
+{
+    "name": "aws_bucket_fs",
+    "type": "drupal-module",
+    "description": "Provides an AWS bucket as a filesystem. Supports large files direct to S3 via POST.411",
+    "keywords": [
+    ],
+    "homepage": "https://www.drupal.org/project/aws_bucket_fs",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/aws_bucket_fs",
+        "source": "http://cgit.drupalcode.org/aws_bucket_fs",
+    },
+}

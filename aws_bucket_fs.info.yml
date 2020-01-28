@@ -1,0 +1,5 @@
+name: 'AWS Bucket Filesystem'
+type: module
+description: 'Provides an AWS bucket as a filesystem. Supports large files direct to S3 via POST.411'
+core: 8.x
+package: 'Custom'
