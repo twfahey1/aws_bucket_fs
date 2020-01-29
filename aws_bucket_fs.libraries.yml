@@ -1,0 +1,5 @@
+client-upload:
+  js:
+    js/upload-to-s3.js: {}
+  dependencies:
+    - core/jquery
