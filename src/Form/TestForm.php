@@ -46,6 +46,7 @@ class TestForm extends FormBase {
     $secret_key = Settings::get('s3fs.secret_key');
     $credentials = new Credentials($access_key, $secret_key);
 
+    // TODO: Hardcoded bucket name here.
     $bucket = 'test-bucket-a4816';
     $keyname = $form_state->getValue('name_of_upload');
     $s3Client = new S3Client([
@@ -53,17 +54,36 @@ class TestForm extends FormBase {
       'region'  => 'us-east-2',
       'credentials' => $credentials,
     ]);
-  
-    $cmd = $s3Client->getCommand('PutObject', [
+
+    // This is an example of getting an object out of the store.
+    // The image in this case is in a folder "test", called "drupal-test.png".
+    // It can't be accessed normally (the bucket is "private", by default), but
+    // with the presigned request, we get an accessible URL that is valid for
+    // a certain amount of time.
+    $cmd = $s3Client->getCommand('GetObject', [
       'Bucket' => $bucket,
       'Key' => 'test/drupal-test.png',
+    ]);
+
+    $image_request_example = $s3Client->createPresignedRequest($cmd, '+20 minutes');
+    $form['debug_get_image'] = [
+      '#markup' => '<h3>Example retrieved image:</h3><img src="' . $image_request_example->getUri() . '">',
+    ];
+  
+    // This is an example of creating a put request. This URL generated
+    // allows a client to post directly to the bucket. This bypasses
+    // any server limitations on file size, timeouts, etc. We can pass
+    // the URL to Javascript safely, and allow client to put large files.
+    $cmd = $s3Client->getCommand('PutObject', [
+      'Bucket' => $bucket,
+      'Key' => 'test/foobar.txt',
     ]);
 
     $request = $s3Client->createPresignedRequest($cmd, '+20 minutes');
     $presigned_url = $request->getUri();
 
     $form['debug'] = [
-      '#markup' => 'requestUri: ' . $presigned_url,
+      '#markup' => 'PutObject requestUri: ' . $presigned_url,
     ];
 
     $form['#attached']['library'][] = 'aws_bucket_fs/client-upload';
