@@ -89,6 +89,10 @@ class TestForm extends FormBase {
     $form['#attached']['library'][] = 'aws_bucket_fs/client-upload';
     $form['#attached']['drupalSettings']['presignedUrl'] = $presigned_url->__toString();
 
+    $form['reactwidget'] = [
+      '#markup' => '<h3>testing react widget</h3><div id="root"></div>',
+    ];
+
     $form['submit'] = [
       '#markup' => '<div id="submitupload"><h4>Submit upload</h4></div>',
     ];

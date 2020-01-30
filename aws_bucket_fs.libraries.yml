@@ -1,5 +1,7 @@
 client-upload:
   js:
     js/upload-to-s3.js: {}
+    js/aws-upload-to-s3/build/static/js/main.1c356a74.js: {}
+    
   dependencies:
     - core/jquery
