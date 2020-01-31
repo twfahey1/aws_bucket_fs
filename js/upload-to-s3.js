@@ -14,10 +14,12 @@
           url: "/rest/session/token",
           success: function(token) {
             var package = {};
+            var theFormFile = $('#theFile').get()[0].files[0];
+            console.log(theFormFile);
             package.title = [{"value":"title"}];
             package.type = [{"target_id":"article"}];
             package._links = {"type":{"href":"http://localhost/rest/type/node/article"}};
-            package.file_name = [{"value":"test/foobar.txt"}];
+            package.file_name = [{"value":theFormFile.name}];
             console.log(token);
             $.ajax({
               url: "/aws-crr/v1/endpoint?_format=json",
@@ -31,7 +33,6 @@
               success: function(payload) {
                 console.log(payload);
                 var presigned_url = payload.presigned_url;
-                var theFormFile = $('#theFile').get()[0].files[0];
                 $.ajax({
                   type: 'PUT',
                   url: presigned_url,
