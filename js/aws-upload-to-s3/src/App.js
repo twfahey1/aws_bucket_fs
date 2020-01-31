@@ -90,14 +90,7 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <h1>Login to upload files</h1>
-        <form onSubmit={this.onSubmit}>
-          <input type='text' value={this.state.username} onChange={(event) => this.setState({username: event.target.value})} placeholder='username' /><br />
-          <input type='password' value={this.state.password} onChange={(event) => this.setState({password: event.target.value})} placeholder='password' /><br />
-          <input type='submit' value='Login' />
-        </form>
-        <p style={{color: 'red', display: this.state.isLoginFailed ? 'block' : 'none'}}>Credentials incorrect</p>
-        <div style={{display: this.state.isAuthenticated ? 'block' : 'none'}}>
+        <div style={'block'}>
           <Dropzone onDrop={this.onDrop}>
             <p>Drop your files here or click to select one.</p>
           </Dropzone>

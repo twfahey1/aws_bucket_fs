@@ -48,7 +48,6 @@ class TestForm extends FormBase {
 
     // TODO: Hardcoded bucket name here.
     $bucket = 'test-bucket-a4816';
-    $keyname = $form_state->getValue('name_of_upload');
     $s3Client = new S3Client([
       'version' => 'latest',
       'region'  => 'us-east-2',
@@ -67,7 +66,7 @@ class TestForm extends FormBase {
 
     $image_request_example = $s3Client->createPresignedRequest($cmd, '+20 minutes');
     $form['debug_get_image'] = [
-      '#markup' => '<h3>Example retrieved image:</h3><img src="' . $image_request_example->getUri() . '">',
+      '#markup' => '<h3>Example retrieved image:</h3><img src="' . $image_request_example->getUri() . '"></img>',
     ];
   
     // This is an example of creating a put request. This URL generated
@@ -83,11 +82,22 @@ class TestForm extends FormBase {
     $presigned_url = $request->getUri();
 
     $form['debug'] = [
-      '#markup' => 'PutObject requestUri: ' . $presigned_url,
+      '#markup' => '<h5>PutObject requestUri: ' . $presigned_url . '</h5>',
     ];
 
     $form['#attached']['library'][] = 'aws_bucket_fs/client-upload';
     $form['#attached']['drupalSettings']['presignedUrl'] = $presigned_url->__toString();
+    
+    $form['hacky_markup'] = [
+      '#markup' => '<h4>hacky form</h4><form id="s3form" action="' . $presigned_url->__toString() . '" method="post" enctype="multipart/form-data">
+        <input id="theFile" type="file" name="files[]" multiple />
+        <input type="submit" value="Upload File" name="submit" />
+      </form>',
+      '#allowed_tags' => [
+        'form',
+        'input',
+      ],
+    ];
 
     $form['reactwidget'] = [
       '#markup' => '<h3>testing react widget</h3><div id="root"></div>',
