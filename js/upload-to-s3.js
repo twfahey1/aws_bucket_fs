@@ -42,6 +42,25 @@
                   processData: false,
                   // the actual file is sent raw
                   data: theFormFile,
+                  xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+                
+                    xhr.upload.addEventListener("progress", function(evt) {
+                      if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        percentComplete = parseInt(percentComplete * 100);
+                        console.log(percentComplete);
+                        $("#percent").text(percentComplete + "%");
+                        if (percentComplete === 100) {
+                          $("#percent").text("Done.");
+
+                        }
+                
+                      }
+                    }, false);
+                
+                    return xhr;
+                  },
                   success: function() {
                     alert('File uploaded');
                   },

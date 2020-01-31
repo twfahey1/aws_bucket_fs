@@ -89,22 +89,28 @@ class TestForm extends FormBase {
     $form['#attached']['drupalSettings']['presignedUrl'] = $presigned_url->__toString();
     
     $form['hacky_markup'] = [
-      '#markup' => '<h4>hacky form</h4><form id="s3form" action="' . $presigned_url->__toString() . '" method="post" enctype="multipart/form-data">
+      '#markup' => '<h4>Upload a file to bucket</h4><br>
+      <form id="s3form" method="post" enctype="multipart/form-data">
         <input id="theFile" type="file" name="files[]" multiple />
-        <input type="submit" value="Upload File" name="submit" />
-      </form>',
+      </form>
+      <div class="progress">
+          <div class="bar"></div >
+          <div id="percent">0%</div >
+      </div>
+
+      <div id="status"></div>
+      ',
       '#allowed_tags' => [
         'form',
         'input',
+        'div',
+        'h4',
+        'br',
       ],
     ];
 
-    $form['reactwidget'] = [
-      '#markup' => '<h3>testing react widget</h3><div id="root"></div>',
-    ];
-
     $form['submit'] = [
-      '#markup' => '<div id="submitupload"><h4>Submit upload</h4></div>',
+      '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
     ];
 
     return $form;
