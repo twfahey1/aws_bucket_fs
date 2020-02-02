@@ -1,0 +1,10 @@
+field.widget.settings.bucket_stored_file_widget:
+  type: mapping
+  label: 'Bucket stored file widget widget settings'
+  mapping:
+    size:
+      type: integer
+      label: 'Size'
+    placeholder:
+      type: textfield
+      label: 'Placeholder'
