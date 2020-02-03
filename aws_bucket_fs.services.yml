@@ -1,0 +1,7 @@
+services:
+  logger.channel.aws_bucket_fs:
+    parent: logger.channel_base
+    arguments: ['aws_bucket_fs']
+  aws_bucket_fs.manager:
+    class: Drupal\aws_bucket_fs\AwsBucketFsManagerService
+    arguments: ['@entity_type.manager']
