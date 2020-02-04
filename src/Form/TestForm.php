@@ -23,11 +23,19 @@ class TestForm extends FormBase {
   protected $entityTypeManager;
 
   /**
+   * Drupal\aws_bucket_fs\AwsBucketFsManagerService definition.
+   * 
+   * @var \Drupal\aws_bucket_fs\AwsBucketFsManagerService
+   */
+  protected $awsBucketFsManagerService;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     $instance = parent::create($container);
     $instance->entityTypeManager = $container->get('entity_type.manager');
+    $instance->awsBucketFsManagerService = $container->get('aws_bucket_fs.manager');
     return $instance;
   }
 
@@ -42,52 +50,22 @@ class TestForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $access_key = Settings::get('s3fs.access_key');
-    $secret_key = Settings::get('s3fs.secret_key');
-    $credentials = new Credentials($access_key, $secret_key);
-
-    // TODO: Hardcoded bucket name here.
-    $bucket = 'test-bucket-a4816';
-    $s3Client = new S3Client([
-      'version' => 'latest',
-      'region'  => 'us-east-2',
-      'credentials' => $credentials,
-    ]);
-
     // This is an example of getting an object out of the store.
     // The image in this case is in a folder "test", called "drupal-test.png".
     // It can't be accessed normally (the bucket is "private", by default), but
     // with the presigned request, we get an accessible URL that is valid for
     // a certain amount of time.
-    $cmd = $s3Client->getCommand('GetObject', [
-      'Bucket' => $bucket,
-      'Key' => 'test/drupal-test.png',
-    ]);
-
-    $image_request_example = $s3Client->createPresignedRequest($cmd, '+20 minutes');
+    $bucket = 'test-bucket-a4816';
+    $test_image_key = 'test/drupal-test.png';
+    $image_request_example = $this->awsBucketFsManagerService->getPresignedUrl('GetObject', 'us-east-2', $bucket, $test_image_key);
     $form['debug_get_image'] = [
       '#markup' => '<h3>Example retrieved image:</h3><img src="' . $image_request_example->getUri() . '"></img>',
     ];
   
-    // This is an example of creating a put request. This URL generated
-    // allows a client to post directly to the bucket. This bypasses
-    // any server limitations on file size, timeouts, etc. We can pass
-    // the URL to Javascript safely, and allow client to put large files.
-    $cmd = $s3Client->getCommand('PutObject', [
-      'Bucket' => $bucket,
-      'Key' => 'test/foobar.txt',
-    ]);
-
-    $request = $s3Client->createPresignedRequest($cmd, '+20 minutes');
-    $presigned_url = $request->getUri();
-
-    $form['debug'] = [
-      '#markup' => '<h5>PutObject requestUri: ' . $presigned_url . '</h5>',
-    ];
-
+    // Example of upload. The attached JS will send a request to our REST API
+    // endpoint with the local user file information, and will initiate the
+    // upload directly to S3.
     $form['#attached']['library'][] = 'aws_bucket_fs/client-upload';
-    $form['#attached']['drupalSettings']['presignedUrl'] = $presigned_url->__toString();
-    
     $form['hacky_markup'] = [
       '#markup' => '<h4>Upload a file to bucket</h4><br>
       <form id="s3form" method="post" enctype="multipart/form-data">
@@ -130,37 +108,7 @@ class TestForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Display result.
-    foreach ($form_state->getValues() as $key => $value) {
-      \Drupal::messenger()->addMessage($key . ': ' . ($key === 'text_format'?$value['value']:$value));
-    }
 
-    $access_key = Settings::get('s3fs.access_key');
-    $secret_key = Settings::get('s3fs.secret_key');
-    $credentials = new Credentials($access_key, $secret_key);
-
-    $bucket = 'test-bucket-a4816';
-    $keyname = $form_state->getValue('name_of_upload');
-    $s3 = new S3Client([
-      'version' => 'latest',
-      'region'  => 'us-east-2',
-      'credentials' => $credentials,
-    ]);
-
-    try {
-        // Upload data.
-        $result = $s3->putObject([
-            'Bucket' => $bucket,
-            'Key'    => 'test.html',
-            'Body'   => 'Hello, world!',
-            'ACL'    => 'public-read'
-        ]);
-
-        // Print the URL to the object.
-        echo $result['ObjectURL'] . PHP_EOL;
-    } catch (S3Exception $e) {
-        drupal_set_message($e->getMessage());
-    }
   }
 
 }

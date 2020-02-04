@@ -1,13 +1,13 @@
 // This uses presigned request to allow user to upload directly to s3.
 
 (function ($, Drupal) {
-  
+  // We first get a CRFS token from Drupal. Then, we get the file information,
+  // and pass that along to our custom REST endpoint, which can generate the
+  // presigned URL. Then, with the presigned URL, make the actual post to S3.
+  // We attach the XHR event listener to report back on upload progress to
+  // the front end.
   Drupal.behaviors.awsuploadtos3 = {
     attach: function (context, settings) {
-      const form = $('#s3form', context)
-      const url = form.attr('src')
-      console.log(form);
-      console.log(url);
       $('#submitupload', context).click(function () {
         $.ajax({
           method: "GET",
@@ -15,12 +15,10 @@
           success: function(token) {
             var package = {};
             var theFormFile = $('#theFile').get()[0].files[0];
-            console.log(theFormFile);
             package.title = [{"value":"title"}];
             package.type = [{"target_id":"article"}];
             package._links = {"type":{"href":"http://localhost/rest/type/node/article"}};
             package.file_name = [{"value":theFormFile.name}];
-            console.log(token);
             $.ajax({
               url: "/aws-crr/v1/endpoint?_format=json",
               method: "POST",
@@ -31,7 +29,6 @@
               },
               data: JSON.stringify(package),
               success: function(payload) {
-                console.log(payload);
                 var presigned_url = payload.presigned_url;
                 $.ajax({
                   type: 'PUT',
@@ -44,7 +41,6 @@
                   data: theFormFile,
                   xhr: function() {
                     var xhr = new window.XMLHttpRequest();
-                
                     xhr.upload.addEventListener("progress", function(evt) {
                       if (evt.lengthComputable) {
                         var percentComplete = evt.loaded / evt.total;
@@ -53,12 +49,9 @@
                         $("#percent").text(percentComplete + "%");
                         if (percentComplete === 100) {
                           $("#percent").text("Done.");
-
                         }
-                
                       }
                     }, false);
-                
                     return xhr;
                   },
                   success: function() {
