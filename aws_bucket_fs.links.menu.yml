@@ -1,14 +1,21 @@
 
 # Aws bucket entity menu items definition
+aws_bucket_fs.main:
+  route_name: aws_bucket_fs.main
+  parent: system.admin
+  description: 'Administer AWS Bucket FS'
+  title: AWS Bucket FS
+  weight: -8
+  
 entity.aws_bucket_entity.collection:
-  title: 'Aws bucket entity list'
+  title: 'Buckets'
   route_name: entity.aws_bucket_entity.collection
   description: 'List Aws bucket entity entities'
-  parent: system.admin_structure
+  parent: aws_bucket_fs.main
   weight: 100
 
 aws_bucket_entity.admin.structure.settings:
-  title: 'Aws bucket entity settings'
+  title: 'Bucket settings'
   description: 'Configure Aws bucket entity entities'
   route_name: aws_bucket_entity.settings
-  parent: system.admin_structure
+  parent: aws_bucket_fs.main
