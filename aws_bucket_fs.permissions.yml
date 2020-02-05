@@ -29,3 +29,34 @@ delete all aws bucket entity revisions:
   title: 'Delete all revisions'
   description: 'Role requires permission to <em>view Aws bucket entity revisions</em> and <em>delete rights</em> for aws bucket entity entities in question or <em>administer aws bucket entity entities</em>.'
 
+add aws file entities:
+  title: 'Create new Aws file entities'
+
+administer aws file entities:
+  title: 'Administer Aws file entities'
+  description: 'Allow to access the administration form to configure Aws file entities.'
+  restrict access: true
+
+delete aws file entities:
+  title: 'Delete Aws file entities'
+
+edit aws file entities:
+  title: 'Edit Aws file entities'
+
+view published aws file entities:
+  title: 'View published Aws file entities'
+
+view unpublished aws file entities:
+  title: 'View unpublished Aws file entities'
+
+view all aws file revisions:
+  title: 'View all Aws file revisions'
+
+revert all aws file revisions:
+  title: 'Revert all Aws file revisions'
+  description: 'Role requires permission <em>view Aws file revisions</em> and <em>edit rights</em> for aws file entities in question or <em>administer aws file entities</em>.'
+
+delete all aws file revisions:
+  title: 'Delete all revisions'
+  description: 'Role requires permission to <em>view Aws file revisions</em> and <em>delete rights</em> for aws file entities in question or <em>administer aws file entities</em>.'
+

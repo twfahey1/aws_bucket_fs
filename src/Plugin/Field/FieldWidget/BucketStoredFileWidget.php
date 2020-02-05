@@ -43,11 +43,12 @@ class BucketStoredFileWidget extends WidgetBase {
       '#required' => TRUE,
       '#min' => 1,
     ];
-    $elements['placeholder'] = [
-      '#type' => 'textfield',
-      '#title' => t('Placeholder'),
+    $elements['bucket'] = [
+      '#title' => t('Bucket'),
+      '#type' => 'entity_autocomplete',
+      '#target_type' => 'aws_bucket_entity',
       '#default_value' => $this->getSetting('placeholder'),
-      '#description' => t('Text that will be shown inside the field until a value is entered. This hint is usually a sample value or a brief description of the expected format.'),
+      '#description' => t('The AWS Bucket to use.'),
     ];
 
     return $elements;
@@ -71,12 +72,42 @@ class BucketStoredFileWidget extends WidgetBase {
    * {@inheritdoc}
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
-    $element['value'] = $element + [
-      '#type' => 'textfield',
-      '#default_value' => isset($items[$delta]->value) ? $items[$delta]->value : NULL,
-      '#size' => $this->getSetting('size'),
-      '#placeholder' => $this->getSetting('placeholder'),
-      '#maxlength' => $this->getFieldSetting('max_length'),
+    $form['#attached']['library'][] = 'aws_bucket_fs/field-client-upload';
+
+    $form['file_fieldset'] = [
+      '#type' => 'fieldset',
+      '#title' => 'Bucket upload',
+    ];
+
+    $form['file_fieldset']['file'] = [
+      '#type' => 'file',
+      '#attributes' => [
+        'id' => 'theFile',
+      ],
+    ];
+
+    $form['file_fieldset']['status'] = [
+      '#prefix' => '<div id="status">Status',
+      '#markup' => '
+      <div class="progress">
+            <div class="bar"></div>
+            <div id="percent"></div>
+      </div>',
+      '#suffix' => '</div>',
+    ];
+
+    $form['file_fieldset']['actions']['add_name'] = [
+      '#type' => 'submit',
+      '#value' => t('Add one more'),
+      '#submit' => array('::uploadToS3'),
+      '#ajax' => [
+        'callback' => '::uploadFile',
+        'wrapper' => 'file-fieldset-wrapper',
+      ],
+    ];
+
+    $form['submit'] = [
+      '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
     ];
 
     return $element;

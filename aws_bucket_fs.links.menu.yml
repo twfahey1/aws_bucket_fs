@@ -19,3 +19,17 @@ aws_bucket_entity.admin.structure.settings:
   description: 'Configure Aws bucket entity entities'
   route_name: aws_bucket_entity.settings
   parent: aws_bucket_fs.main
+
+# Aws file menu items definition
+entity.aws_file.collection:
+  title: 'Aws file list'
+  route_name: entity.aws_file.collection
+  description: 'List Aws file entities'
+  parent: aws_bucket_fs.main
+  weight: 100
+
+aws_file.admin.structure.settings:
+  title: 'Aws file settings'
+  description: 'Configure Aws file entities'
+  route_name: aws_file.settings
+  parent: aws_bucket_fs.main

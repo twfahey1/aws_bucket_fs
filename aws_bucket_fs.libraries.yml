@@ -5,3 +5,10 @@ client-upload:
     
   dependencies:
     - core/jquery
+field-client-upload:
+  js:
+    js/upload-to-s3-field.js: {}
+    # js/aws-upload-to-s3/build/static/js/main.83f294ea.js: {}
+    
+  dependencies:
+    - core/jquery

@@ -24,3 +24,29 @@ entity.aws_bucket_entity.delete_form:
   base_route:  entity.aws_bucket_entity.canonical
   title: Delete
   weight: 10
+# Aws file routing definition
+aws_file.settings_tab:
+  route_name: aws_file.settings
+  title: 'Settings'
+  base_route: aws_file.settings
+
+entity.aws_file.canonical:
+  route_name: entity.aws_file.canonical
+  base_route: entity.aws_file.canonical
+  title: 'View'
+
+entity.aws_file.edit_form:
+  route_name: entity.aws_file.edit_form
+  base_route: entity.aws_file.canonical
+  title: 'Edit'
+
+entity.aws_file.version_history:
+  route_name: entity.aws_file.version_history
+  base_route: entity.aws_file.canonical
+  title: 'Revisions'
+
+entity.aws_file.delete_form:
+  route_name:  entity.aws_file.delete_form
+  base_route:  entity.aws_file.canonical
+  title: Delete
+  weight: 10
