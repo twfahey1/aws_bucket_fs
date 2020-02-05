@@ -11,7 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @FieldWidget(
  *   id = "bucket_stored_file_widget",
- *   module = "aws_bucket_fs"
+ *   module = "aws_bucket_fs",
  *   label = @Translation("Bucket stored file widget"),
  *   field_types = {
  *     "bucket_stored_file"
