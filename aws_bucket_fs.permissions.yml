@@ -1,0 +1,31 @@
+add aws bucket entity entities:
+  title: 'Create new Aws bucket entity entities'
+
+administer aws bucket entity entities:
+  title: 'Administer Aws bucket entity entities'
+  description: 'Allow to access the administration form to configure Aws bucket entity entities.'
+  restrict access: true
+
+delete aws bucket entity entities:
+  title: 'Delete Aws bucket entity entities'
+
+edit aws bucket entity entities:
+  title: 'Edit Aws bucket entity entities'
+
+view published aws bucket entity entities:
+  title: 'View published Aws bucket entity entities'
+
+view unpublished aws bucket entity entities:
+  title: 'View unpublished Aws bucket entity entities'
+
+view all aws bucket entity revisions:
+  title: 'View all Aws bucket entity revisions'
+
+revert all aws bucket entity revisions:
+  title: 'Revert all Aws bucket entity revisions'
+  description: 'Role requires permission <em>view Aws bucket entity revisions</em> and <em>edit rights</em> for aws bucket entity entities in question or <em>administer aws bucket entity entities</em>.'
+
+delete all aws bucket entity revisions:
+  title: 'Delete all revisions'
+  description: 'Role requires permission to <em>view Aws bucket entity revisions</em> and <em>delete rights</em> for aws bucket entity entities in question or <em>administer aws bucket entity entities</em>.'
+

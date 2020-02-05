@@ -1,0 +1,5 @@
+entity.aws_bucket_entity.add_form:
+  route_name: entity.aws_bucket_entity.add_form
+  title: 'Add Aws bucket entity'
+  appears_on:
+    - entity.aws_bucket_entity.collection
