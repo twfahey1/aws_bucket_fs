@@ -18,5 +18,7 @@
 <div{{ attributes.addClass('aws_file') }}>
   {% if content %}
     {{- content -}}
+    <h3>Download URL: </h3>
+    <a href="{{ content.download_url }}">{{ content.download_url }}</p>
   {% endif %}
 </div>

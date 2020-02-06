@@ -31,5 +31,10 @@ function aws_bucket_fs_theme() {
     'aws_bucket_fs' => [
       'render element' => 'children',
     ],
+    'aws_file' => [
+      'render element' => 'elements',
+      'file' => 'aws_file.page.inc',
+      'template' => 'aws_file',
+    ],
   ];
 }

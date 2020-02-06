@@ -56,6 +56,8 @@
                 console.log(data);
                 console.log(textStatus);
                 console.log(jqXHR);
+                $('#aws-file-edit-form').trigger('submit');
+                $('#aws-file-add-form').trigger('submit');
               },
               error: function() {
                 alert('File NOT uploaded');

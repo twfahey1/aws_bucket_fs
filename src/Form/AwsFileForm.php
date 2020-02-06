@@ -89,7 +89,9 @@ class AwsFileForm extends ContentEntityForm {
     //   '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
     // ];
 
-    $form['actions']['submit']['#submit'] = [];
+    // $form['actions']['submit']['#submit'] = [
+    //   '::save',
+    // ];
     $form['actions']['submit']['#ajax'] = [
       'callback' => '::doAjaxSave', // don't forget :: when calling a class method.
       //'callback' => [$this, 'myAjaxCallback'], //alternative notation
@@ -147,10 +149,7 @@ class AwsFileForm extends ContentEntityForm {
   public function doSave(array $form, FormStateInterface $form_state) {
     // If we want to execute AJAX commands our callback needs to return
     // an AjaxResponse object. let's create it and add our commands.
-    $response = 'foo';
-
-    // Finally return the AjaxResponse object.
-    return $response;
+    $this->save($form, $form_state);
   }
 
   /**

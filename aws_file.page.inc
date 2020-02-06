@@ -27,4 +27,12 @@ function template_preprocess_aws_file(array &$variables) {
   foreach (Element::children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
+
+  // Generate URL for download.
+  $bucket = $aws_file->get('field_bucket')->referencedEntities()[0]->label();
+  $path = $aws_file->get('field_path')->first()->getString();
+  if (isset($bucket) && isset($path)) {
+    $download_url = \Drupal::service('aws_bucket_fs.manager')->getPresignedUrl('GetObject', 'us-east-2', $bucket, $path)->getUri();
+    $variables['content']['download_url'] = $download_url;
+  }
 }
