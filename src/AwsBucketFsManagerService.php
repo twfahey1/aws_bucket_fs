@@ -39,28 +39,39 @@ class AwsBucketFsManagerService implements AwsBucketFsManagerServiceInterface {
    *   would be the foo.txt insidfe the test folder.
    */
   public function getPresignedUrl($operation, $region, $bucket, $key) {
-    try {
-      $access_key = Settings::get('s3fs.access_key');
-      $secret_key = Settings::get('s3fs.secret_key');
-      $credentials = new Credentials($access_key, $secret_key);
-      $s3Client = new S3Client([
-        'version' => 'latest',
-        'region'  => $region,
-        'credentials' => $credentials,
-      ]);
-      $cmd = $s3Client->getCommand($operation, [
-        'Bucket' => $bucket,
-        'Key' => $key,
-      ]);
-      $presigned_url = $s3Client->createPresignedRequest($cmd, '+20 minutes');
-      return $presigned_url;
+    if ($this->validateRequest($operation, $region, $bucket, $key)) {
+      try {
+        $access_key = Settings::get('s3fs.access_key');
+        $secret_key = Settings::get('s3fs.secret_key');
+        $credentials = new Credentials($access_key, $secret_key);
+        $s3Client = new S3Client([
+          'version' => 'latest',
+          'region'  => $region,
+          'credentials' => $credentials,
+        ]);
+        $cmd = $s3Client->getCommand($operation, [
+          'Bucket' => $bucket,
+          'Key' => $key,
+        ]);
+        $presigned_url = $s3Client->createPresignedRequest($cmd, '+20 minutes');
+        return $presigned_url;
+      }
+      catch (S3Exception $e) {
+        \Drupal::logger('aws_bucket_fs')->error($e->getMessage());
+      }
+      catch (\Exception $e) {
+        \Drupal::logger('aws_bucket_fs')->error($e->getMessage());
+      }
     }
-    catch (S3Exception $e) {
-      \Drupal::logger('aws_bucket_fs')->error($e->getMessage());
-    }
-    catch (\Exception $e) {
-      \Drupal::logger('aws_bucket_fs')->error($e->getMessage());
-    }
+  }
+
+  /**
+   * Validate if upload is allowed.
+   */
+  public function validateRequest($operation, $region, $bucket, $key) {
+    $user = \Drupal::service('current_user');
+    // Todo: define permissions based on params.
+    return TRUE;
   }
 
 }

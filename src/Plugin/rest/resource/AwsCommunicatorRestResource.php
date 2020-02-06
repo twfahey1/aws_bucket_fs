@@ -58,11 +58,15 @@ class AwsCommunicatorRestResource extends ResourceBase {
     // if (!$this->currentUser->hasPermission('access content')) {
     //     throw new AccessDeniedHttpException();
     // }
+
+    $local_file_path = $payload['local_file_path'][0]['value'];
+    $bucket = $payload['bucket'][0]['value'];
+    $path_to_store = $payload['path_to_store'][0]['value'];
+
     $access_key = Settings::get('s3fs.access_key');
     $secret_key = Settings::get('s3fs.secret_key');
     $credentials = new Credentials($access_key, $secret_key);
-    // TODO: Hardcoded bucket name here.
-    $bucket = 'test-bucket-a4816';
+
     $s3Client = new S3Client([
       'version' => 'latest',
       'region'  => 'us-east-2',
@@ -75,7 +79,7 @@ class AwsCommunicatorRestResource extends ResourceBase {
     // the URL to Javascript safely, and allow client to put large files.
     $cmd = $s3Client->getCommand('PutObject', [
       'Bucket' => $bucket,
-      'Key' => $payload['file_name'][0]['value'],
+      'Key' => $path_to_store,
     ]);
 
     $request = $s3Client->createPresignedRequest($cmd, '+20 minutes');
@@ -83,6 +87,7 @@ class AwsCommunicatorRestResource extends ResourceBase {
 
     $return_payload = [
       'presigned_url' => $presigned_url,
+      'path_to_save' => $path_to_store,
     ];
 
     return new ModifiedResourceResponse($return_payload, 200);

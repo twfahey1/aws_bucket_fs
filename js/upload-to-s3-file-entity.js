@@ -1,18 +1,19 @@
 // This uses presigned request to allow user to upload directly to s3.
 
 (function ($, Drupal) {
-  $.fn.uploadCallback = function(data) {
-    console.log("doing upload cb");
-    doUpload(data);
+  $.fn.uploadCallback = function(form_element, local_file_path, bucket, path_to_store) {
+    console.log("doing upload of " + local_file_path);
+    doUpload(form_element, local_file_path, bucket, path_to_store);
   }
-  function doUpload(data) {
+  function doUpload(form_element, local_file_path, bucket, path_to_store) {
     $.ajax({
       method: "GET",
       url: "/rest/session/token",
       success: function(token) {
         var package = {};
-        var theFormFile = $('#theFile').get()[0].files[0];
-        package.file_name = [{"value":theFormFile.name}];
+        package.file_name = [{"value":local_file_path}];
+        package.bucket = [{"value":bucket}];
+        package.path_to_store = [{"value":path_to_store}];
         $.ajax({
           url: "/aws-crr/v1/endpoint?_format=json",
           method: "POST",
@@ -24,6 +25,7 @@
           data: JSON.stringify(package),
           success: function(payload) {
             var presigned_url = payload.presigned_url;
+            var form_element_selected = $(form_element).get()[0].files[0];
             $.ajax({
               type: 'PUT',
               url: presigned_url,
@@ -32,7 +34,7 @@
               // this flag is important, if not set, it will try to send data as a form
               processData: false,
               // the actual file is sent raw
-              data: theFormFile,
+              data: form_element_selected,
               xhr: function() {
                 var xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener("progress", function(evt) {
@@ -50,7 +52,10 @@
               },
               success: function(data, textStatus, jqXHR) {
                 alert('File uploaded');
-                console.log(payload);
+                console.log(arguments);
+                console.log(data);
+                console.log(textStatus);
+                console.log(jqXHR);
               },
               error: function() {
                 alert('File NOT uploaded');

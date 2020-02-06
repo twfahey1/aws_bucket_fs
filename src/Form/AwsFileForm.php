@@ -24,12 +24,20 @@ class AwsFileForm extends ContentEntityForm {
   protected $account;
 
   /**
+   * The AWS Bucket manager service.
+   *
+   * @var \Drupal\aws_bucket_fs\AwsBucketFsManagerService
+   */
+  protected $awsBucketManager;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     // Instantiates this form class.
     $instance = parent::create($container);
     $instance->account = $container->get('current_user');
+    $instance->awsBucketManager = $container->get('aws_bucket_fs.manager');
     return $instance;
   }
 
@@ -50,7 +58,7 @@ class AwsFileForm extends ContentEntityForm {
       ],
     ];
 
-    $form['file'] = [
+    $form['file_fieldset']['file'] = [
       '#type' => 'file',
       '#attributes' => [
         'id' => 'theFile',
@@ -67,19 +75,19 @@ class AwsFileForm extends ContentEntityForm {
       '#suffix' => '</div>',
     ];
 
-    $form['file_fieldset']['actions']['add_name'] = [
-      '#type' => 'submit',
-      '#value' => t('Add one more'),
-      '#submit' => array('::uploadToS3'),
-      '#ajax' => [
-        'callback' => '::uploadFile',
-        'wrapper' => 'file-fieldset-wrapper',
-      ],
-    ];
+    // $form['file_fieldset']['actions']['add_file'] = [
+    //   '#type' => 'submit',
+    //   '#value' => t('Add one more'),
+    //   '#submit' => array('::uploadToS3'),
+    //   '#ajax' => [
+    //     'callback' => '::uploadFile',
+    //     'wrapper' => 'file-fieldset-wrapper',
+    //   ],
+    // ];
 
-    $form['submit'] = [
-      '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
-    ];
+    // $form['submit'] = [
+    //   '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
+    // ];
 
     $form['actions']['submit']['#submit'] = [];
     $form['actions']['submit']['#ajax'] = [
@@ -115,10 +123,19 @@ class AwsFileForm extends ContentEntityForm {
     $file = $form_state->getValue('file');
     $all_files = $this->getRequest()->files->get('files', []);
     $file = $all_files['file'];
-    $file_path = $file->getRealPath();
-    // TODO: Confirm via service / permissions user can upload here.
+    $local_file_path = $file->getClientOriginalName();
+
+    $bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
+    $bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($bucket_id);
+    $bucket = $bucket_entity->label();
+    $path_to_store = $form_state->getValue('field_path')[0]['value'];
+
+    // Get the file form selector, assumed to be an ID.
+    $file_form_selector = '#' . $form['file_fieldset']['file']['#attributes']['id'];
     $response = new AjaxResponse();
-    $response->addCommand(new InvokeCommand(NULL, 'uploadCallback', ['This is the new text!']));
+    $response->addCommand(new InvokeCommand(NULL, 'uploadCallback', [
+      $file_form_selector, $local_file_path, $bucket, $path_to_store,
+    ]));
     return $response;
   }
 
