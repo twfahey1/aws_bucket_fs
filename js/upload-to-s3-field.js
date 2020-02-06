@@ -46,7 +46,7 @@
                       if (evt.lengthComputable) {
                         var percentComplete = evt.loaded / evt.total;
                         percentComplete = parseInt(percentComplete * 100);
-                        console.log(percentComplete);
+                        // console.log(percentComplete);
                         $("#percent").text(percentComplete + "%");
                         if (percentComplete === 100) {
                           $("#percent").text("Done.");
@@ -55,8 +55,9 @@
                     }, false);
                     return xhr;
                   },
-                  success: function() {
+                  success: function(data, textStatus, jqXHR) {
                     alert('File uploaded');
+                    console.log(payload);
                   },
                   error: function() {
                     alert('File NOT uploaded');
