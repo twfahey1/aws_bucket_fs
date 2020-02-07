@@ -2,6 +2,7 @@
 
 namespace Drupal\aws_bucket_fs;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Link;
@@ -19,6 +20,7 @@ class AwsFileListBuilder extends EntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Aws file ID');
     $header['name'] = $this->t('Name');
+    $header['download'] = $this->t('Download link');
     return $header + parent::buildHeader();
   }
 
@@ -33,6 +35,7 @@ class AwsFileListBuilder extends EntityListBuilder {
       'entity.aws_file.edit_form',
       ['aws_file' => $entity->id()]
     );
+    $row['download'] = new FormattableMarkup('<a href="@link">Download</a>', ['@link' => $entity->getDownloadUrl()]);
     return $row + parent::buildRow($entity);
   }
 

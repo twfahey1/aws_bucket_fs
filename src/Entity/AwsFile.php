@@ -9,6 +9,7 @@ use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityPublishedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 
 /**
@@ -51,15 +52,15 @@ use Drupal\user\UserInterface;
  *     "published" = "status",
  *   },
  *   links = {
- *     "canonical" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}",
- *     "add-form" = "/admin/aws_bucket_fs/aws_file/aws_file/add",
- *     "edit-form" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/edit",
- *     "delete-form" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/delete",
- *     "version-history" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/revisions",
- *     "revision" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/revisions/{aws_file_revision}/view",
- *     "revision_revert" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/revisions/{aws_file_revision}/revert",
- *     "revision_delete" = "/admin/aws_bucket_fs/aws_file/aws_file/{aws_file}/revisions/{aws_file_revision}/delete",
- *     "collection" = "/admin/aws_bucket_fs/aws_file/aws_file",
+ *     "canonical" = "/admin/aws_bucket_fs/aws_file/{aws_file}",
+ *     "add-form" = "/admin/aws_bucket_fs/aws_file/add",
+ *     "edit-form" = "/admin/aws_bucket_fs/aws_file/{aws_file}/edit",
+ *     "delete-form" = "/admin/aws_bucket_fs/aws_file/{aws_file}/delete",
+ *     "version-history" = "/admin/aws_bucket_fs/aws_file/{aws_file}/revisions",
+ *     "revision" = "/admin/aws_bucket_fs/aws_file/{aws_file}/revisions/{aws_file_revision}/view",
+ *     "revision_revert" = "/admin/aws_bucket_fs/aws_file/{aws_file}/revisions/{aws_file_revision}/revert",
+ *     "revision_delete" = "/admin/aws_bucket_fs/aws_file/{aws_file}/revisions/{aws_file_revision}/delete",
+ *     "collection" = "/admin/aws_bucket_fs/aws_file",
  *   },
  *   field_ui_base_route = "aws_file.settings"
  * )
@@ -105,6 +106,25 @@ class AwsFile extends EditorialContentEntityBase implements AwsFileInterface {
     // make the aws_file owner the revision author.
     if (!$this->getRevisionUser()) {
       $this->setRevisionUserId($this->getOwnerId());
+    }
+  }
+
+  /**
+   * Get the download URL for this file.
+   */
+  public function getDownloadUrl() {
+    try {
+      $bucket = $this->get('field_bucket')->referencedEntities()[0]->label();
+      $path = $this->get('field_path')->first()->getString();
+      $image_request = \Drupal::service('aws_bucket_fs.manager')->getPresignedUrl('GetObject', 'us-east-2', $bucket, $path);
+      $image_url = $image_request->getUri();
+      return $image_url;
+    }
+    catch (\Error $e) {
+      return NULL;
+    }
+    catch (\Exception $e) {
+      return NULL;
     }
   }
 
