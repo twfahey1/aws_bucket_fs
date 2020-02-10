@@ -99,6 +99,30 @@ class AwsBucketFsManagerService implements AwsBucketFsManagerServiceInterface {
   }
 
   /**
+   * Delete a file in S3.
+   */
+  public function deleteFile($region, $bucket, $key) {
+    $access_key = Settings::get('s3fs.access_key');
+    $secret_key = Settings::get('s3fs.secret_key');
+    $credentials = new Credentials($access_key, $secret_key);
+    $s3Client = new S3Client([
+      'version' => 'latest',
+      'region'  => $region,
+      'credentials' => $credentials,
+    ]);
+    $result = $s3Client->deleteObject([
+      'Bucket' => $bucket,
+      'Key' => $key,
+    ]);
+
+    $results = [
+      'success' => 1,
+    ];
+
+    return json_encode($results);
+  }
+
+  /**
    * Validate if upload is allowed.
    */
   public function validateRequest($operation, $region, $bucket, $key) {

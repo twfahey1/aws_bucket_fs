@@ -68,7 +68,7 @@ class AwsCommunicatorRestResource extends ResourceBase {
 
     $operation = $payload['operation'][0]['value'];
     $region = 'us-east-2';
-    
+
     if ($operation == "create") {
       $local_file_path = $payload['local_file_path'][0]['value'];
       $bucket = $payload['bucket'][0]['value'];
@@ -124,7 +124,20 @@ class AwsCommunicatorRestResource extends ResourceBase {
   
       return new ModifiedResourceResponse($return_payload, 200);
     }
+
+    if ($operation == "delete") {
+      $region = $payload['region'][0]['value'];
+      $bucket = $payload['bucket'][0]['value'];
+      $key = $payload['key'][0]['value'];
+      \Drupal::service('aws_bucket_fs.manager')->deleteFile($region, $bucket, $key);
+      $return_payload = [
+        'status' => 'Success',
+      ];
+    }
+  
   }
+
+
 
   /**
    * Responds to GET requests.

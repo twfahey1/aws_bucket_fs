@@ -114,7 +114,7 @@ class AwsFileForm extends ContentEntityForm {
         ],
         'visible' => [
           ':input[class="replace-aws-file form-checkbox"]' => ['checked' => TRUE],
-        ]
+        ],
       ];
       $form['file_fieldset']['file']['#states'] = $replace_is_checked_state;
 
@@ -128,7 +128,7 @@ class AwsFileForm extends ContentEntityForm {
         'type' => 'throbber',
         'message' => $this->t('Verifying entry...'),
       ],
-      '#limit_validation_errors' => array(),
+      '#limit_validation_errors' => [],
     ];
 
     if (!$this->entity->isNew()) {
@@ -180,13 +180,26 @@ class AwsFileForm extends ContentEntityForm {
     if ($operation == "edit") {
       $new_bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
       $new_bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($new_bucket_id);
+      /** @var \Drupal\aws_bucket_fs\Entity\AwsFile */
       $original_entity = $this->entityTypeManager->getStorage('aws_file')->load($this->entity->id());
       $original_bucket = $original_entity->getBucket();
       $region = "us-east-2";
       $original_key = $original_entity->getPath();
       $new_bucket = $new_bucket_entity->label();
-      $new_key = $form_state->getValue('field_path')[0]['value'];;
+      $new_key = $form_state->getValue('field_path')[0]['value'];
       $response = new AjaxResponse();
+
+      if ($file_is_present) {
+        // Editing with a new file, so upload it and delete the old file.
+        $file_form_selector = '#' . $form['file_fieldset']['file']['#attributes']['id'];
+        $response->addCommand(new InvokeCommand(NULL, 'deleteAndUpload', [
+          $file_form_selector, $region, $original_bucket, $new_bucket, $original_key, $new_key,
+        ]));
+        $this->store->set('aws_upload_triggered', 1);
+        return $response;
+      }
+
+      // Since the file itself isn't changing, just invoke a renameCallback.
       $response->addCommand(new InvokeCommand(NULL, 'renameCallback', [
         $region, $original_bucket, $new_bucket, $original_key, $new_key,
       ]));
@@ -224,7 +237,7 @@ class AwsFileForm extends ContentEntityForm {
       // Save as a new revision if requested to do so.
       if (!$form_state->isValueEmpty('new_revision') && $form_state->getValue('new_revision') != FALSE) {
         $entity->setNewRevision();
-  
+
         // If a new revision is created, save the current user as revision author.
         $entity->setRevisionCreationTime($this->time->getRequestTime());
         $entity->setRevisionUserId($this->account->id());
@@ -232,16 +245,16 @@ class AwsFileForm extends ContentEntityForm {
       else {
         $entity->setNewRevision(FALSE);
       }
-  
+
       $status = parent::save($form, $form_state);
-  
+
       switch ($status) {
         case SAVED_NEW:
           $this->messenger()->addMessage($this->t('Created the %label Aws file.', [
             '%label' => $entity->label(),
           ]));
           break;
-  
+
         default:
           $this->messenger()->addMessage($this->t('Saved the %label Aws file.', [
             '%label' => $entity->label(),
@@ -251,7 +264,6 @@ class AwsFileForm extends ContentEntityForm {
       $form_state->setRedirect('entity.aws_file.canonical', ['aws_file' => $entity->id()]);
     }
 
-    
   }
 
 }
