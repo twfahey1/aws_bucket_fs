@@ -66,6 +66,39 @@ class AwsBucketFsManagerService implements AwsBucketFsManagerServiceInterface {
   }
 
   /**
+   * Rename a file in S3.
+   */
+  public function renameFile($region, $original_bucket, $new_bucket, $original_key, $new_key) {
+    $access_key = Settings::get('s3fs.access_key');
+    $secret_key = Settings::get('s3fs.secret_key');
+    $credentials = new Credentials($access_key, $secret_key);
+    $s3Client = new S3Client([
+      'version' => 'latest',
+      'region'  => $region,
+      'credentials' => $credentials,
+    ]);
+
+    // Copy the object.
+    $s3Client->copyObject([
+      'Bucket'     => $new_bucket,
+      'Key'        => $new_key,
+      'CopySource' => "{$original_bucket}/{$original_key}",
+    ]);
+
+    // Delete old object.
+    $result = $s3Client->deleteObject([
+      'Bucket' => $original_bucket,
+      'Key' => $original_key,
+    ]);
+
+    $results = [
+      'success' => 1,
+    ];
+
+    return json_encode($results);
+  }
+
+  /**
    * Validate if upload is allowed.
    */
   public function validateRequest($operation, $region, $bucket, $key) {

@@ -20,6 +20,7 @@ class AwsFileListBuilder extends EntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Aws file ID');
     $header['name'] = $this->t('Name');
+    $header['path'] = $this->t('Path');
     $header['download'] = $this->t('Download link');
     return $header + parent::buildHeader();
   }
@@ -35,6 +36,7 @@ class AwsFileListBuilder extends EntityListBuilder {
       'entity.aws_file.edit_form',
       ['aws_file' => $entity->id()]
     );
+    $row['path'] = $entity->getPath();
     $row['download'] = new FormattableMarkup('<a href="@link">Download</a>', ['@link' => $entity->getDownloadUrl()]);
     return $row + parent::buildRow($entity);
   }

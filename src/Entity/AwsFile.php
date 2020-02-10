@@ -114,8 +114,8 @@ class AwsFile extends EditorialContentEntityBase implements AwsFileInterface {
    */
   public function getDownloadUrl() {
     try {
-      $bucket = $this->get('field_bucket')->referencedEntities()[0]->label();
-      $path = $this->get('field_path')->first()->getString();
+      $bucket = $this->getBucket();
+      $path = $this->getPath();
       $image_request = \Drupal::service('aws_bucket_fs.manager')->getPresignedUrl('GetObject', 'us-east-2', $bucket, $path);
       $image_url = $image_request->getUri();
       return $image_url;
@@ -128,6 +128,19 @@ class AwsFile extends EditorialContentEntityBase implements AwsFileInterface {
     }
   }
 
+  /**
+   * Return the bucket.
+   */
+  public function getBucket() {
+    return $this->get('field_bucket')->referencedEntities()[0]->label();
+  }
+
+  /**
+   * Return the path.
+   */
+  public function getPath() {
+    return $this->get('field_path')->first()->getString();
+  }
   /**
    * {@inheritdoc}
    */

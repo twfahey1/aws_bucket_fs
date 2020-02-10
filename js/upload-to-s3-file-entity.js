@@ -11,6 +11,7 @@
       url: "/rest/session/token",
       success: function(token) {
         var package = {};
+        package.operation = [{"value":'create'}];
         package.file_name = [{"value":local_file_path}];
         package.bucket = [{"value":bucket}];
         package.path_to_store = [{"value":path_to_store}];
@@ -65,6 +66,43 @@
               },
             });
           },
+        })
+      }
+    });
+  }
+
+  $.fn.renameCallback = function($region, $original_bucket, $new_bucket, $original_key, $new_key) {
+    console.log("doing rename of " + $original_key + " to " + $new_key);
+    doRename($region, $original_bucket, $new_bucket, $original_key, $new_key);
+  }
+  function doRename($region, $original_bucket, $new_bucket, $original_key, $new_key) {
+    $.ajax({
+      method: "GET",
+      url: "/rest/session/token",
+      success: function(token) {
+        var package = {};
+        package.operation = [{"value":'rename'}];
+        package.region = [{"value": $region}];
+        package.original_bucket = [{"value": $original_bucket}];
+        package.new_bucket = [{"value": $new_bucket}];
+        package.original_key = [{"value": $original_key}];
+        package.new_key = [{"value": $new_key}];
+        $.ajax({
+          url: "/aws-crr/v1/endpoint?_format=json",
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": token,
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          data: JSON.stringify(package),
+          success: function(payload) {
+            $('#aws-file-edit-form').trigger('submit');
+            console.log(payload);
+          },
+          failure: function(payload) {
+            console.log(payload);
+          }
         })
       }
     });

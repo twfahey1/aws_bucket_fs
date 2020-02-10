@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.aws_file.field_bucket
+  module:
+    - aws_bucket_fs
+id: aws_file.aws_file.field_bucket
+field_name: field_bucket
+entity_type: aws_file
+bundle: aws_file
+label: Bucket
+description: 'The associated bucket for this file.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:aws_bucket_entity'
+  handler_settings:
+    target_bundles: null
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

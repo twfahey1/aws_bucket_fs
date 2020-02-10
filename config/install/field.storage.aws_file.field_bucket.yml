@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - aws_bucket_fs
+id: aws_file.field_bucket
+field_name: field_bucket
+entity_type: aws_file
+type: entity_reference
+settings:
+  target_type: aws_bucket_entity
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

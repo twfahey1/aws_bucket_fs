@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.aws_file.field_path
+  module:
+    - aws_bucket_fs
+id: aws_file.aws_file.field_path
+field_name: field_path
+entity_type: aws_file
+bundle: aws_file
+label: Path
+description: 'The path to the file within the bucket.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

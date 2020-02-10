@@ -31,6 +31,21 @@ class AwsFileForm extends ContentEntityForm {
   protected $awsBucketManager;
 
   /**
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
+   */
+  protected $tempStoreFactory;
+
+  /**
+   * @var \Drupal\Core\Session\SessionManagerInterface
+   */
+  private $sessionManager;
+
+  /**
+   * @var \Drupal\user\PrivateTempStore
+   */
+  protected $store;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
@@ -38,6 +53,8 @@ class AwsFileForm extends ContentEntityForm {
     $instance = parent::create($container);
     $instance->account = $container->get('current_user');
     $instance->awsBucketManager = $container->get('aws_bucket_fs.manager');
+    $instance->tempstoreFactory = $container->get('tempstore.private');
+    $instance->sessionManager = $container->get('session_manager');
     return $instance;
   }
 
@@ -45,6 +62,9 @@ class AwsFileForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $this->tempStoreFactory = \Drupal::service('tempstore.private');
+    $this->store = $this->tempStoreFactory->get('multistep_data');
+
     /* @var \Drupal\aws_bucket_fs\Entity\AwsFile $entity */
     $form = parent::buildForm($form, $form_state);
 
@@ -57,6 +77,13 @@ class AwsFileForm extends ContentEntityForm {
         'id' => 'file-fieldset-wrapper',
       ],
     ];
+
+    // Show markup to user to indicate on editing.
+    if ($form_state->getBuildInfo()['form_id'] == 'aws_file_edit_form') {
+      $form['file_fieldset']['notice'] = [
+        '#markup' => 'Note: You are editing an existing entity. The file will not be updated or replaced.',
+      ];
+    }
 
     $form['file_fieldset']['file'] = [
       '#type' => 'file',
@@ -75,23 +102,10 @@ class AwsFileForm extends ContentEntityForm {
       '#suffix' => '</div>',
     ];
 
-    // $form['file_fieldset']['actions']['add_file'] = [
-    //   '#type' => 'submit',
-    //   '#value' => t('Add one more'),
-    //   '#submit' => array('::uploadToS3'),
-    //   '#ajax' => [
-    //     'callback' => '::uploadFile',
-    //     'wrapper' => 'file-fieldset-wrapper',
-    //   ],
-    // ];
-
-    // $form['submit'] = [
-    //   '#markup' => '<div class="button" id="submitupload"><h4>Submit upload</h4></div>',
-    // ];
-
     // $form['actions']['submit']['#submit'] = [
-    //   '::save',
+    //   '::doSave',
     // ];
+
     $form['actions']['submit']['#ajax'] = [
       'callback' => '::doAjaxSave', // don't forget :: when calling a class method.
       //'callback' => [$this, 'myAjaxCallback'], //alternative notation
@@ -120,71 +134,114 @@ class AwsFileForm extends ContentEntityForm {
    * Does an Ajax based save.
    *
    * This will trigger upload to S3 with desired values.
+   * 
+   * If the user is adding a new file, we need to do the upload to S3 after verifying permissions.
+   * If the user is editing an existing file, we'll need to determine what they are changing.
+   * If the want to edit the actual file, we should acknowledge they've added something new to 
+   * the file element, and possibly remove the old file to do some cleanup.
+   * 
+   * If they are changing the file location, we'll have to move the file via S3 SDK, and
+   * update the values accordingly.
    */
   public function doAjaxSave(array $form, FormStateInterface $form_state) {
     $file = $form_state->getValue('file');
     $all_files = $this->getRequest()->files->get('files', []);
-    $file = $all_files['file'];
-    $local_file_path = $file->getClientOriginalName();
+    $operation = $form_state->getFormObject()->getOperation();
+    if (empty($all_files)) {
+      $file_is_present = FALSE;
+    }
+    else {
+      $file_is_present = TRUE;
+    }
+    if ($file_is_present == FALSE && $operation == "add") {
+      // No file is present in the file form element. We need a file to create new.
+      $response = new AjaxResponse();
+      $response->addCommand(new OpenModalDialogCommand("Error", ['#markup' => "You need to add a file to proceed."]));
+      return $response;
+    }
 
-    $bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
-    $bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($bucket_id);
-    $bucket = $bucket_entity->label();
-    $path_to_store = $form_state->getValue('field_path')[0]['value'];
+    if ($file_is_present == TRUE) {
+      $file = $all_files['file'];
+      $local_file_path = $file->getClientOriginalName();
+    }
+    if ($operation == "edit") {
+      $new_bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
+      $new_bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($new_bucket_id);
 
-    // Get the file form selector, assumed to be an ID.
-    $file_form_selector = '#' . $form['file_fieldset']['file']['#attributes']['id'];
-    $response = new AjaxResponse();
-    $response->addCommand(new InvokeCommand(NULL, 'uploadCallback', [
-      $file_form_selector, $local_file_path, $bucket, $path_to_store,
-    ]));
-    return $response;
-  }
+      $original_entity = $this->entityTypeManager->getStorage('aws_file')->load($this->entity->id());
 
-  /**
-   * Does an Ajax based save.
-   *
-   * This will trigger upload to S3 with desired values.
-   */
-  public function doSave(array $form, FormStateInterface $form_state) {
-    // If we want to execute AJAX commands our callback needs to return
-    // an AjaxResponse object. let's create it and add our commands.
-    $this->save($form, $form_state);
+      $original_bucket = $original_entity->getBucket();
+
+      $region = "us-east-2";
+      $original_key = $original_entity->getPath();
+      $new_bucket = $new_bucket_entity->label();
+      $new_key = $form_state->getValue('field_path')[0]['value'];;
+      $response = new AjaxResponse();
+      $response->addCommand(new InvokeCommand(NULL, 'renameCallback', [
+        $region, $original_bucket, $new_bucket, $original_key, $new_key,
+      ]));
+      $this->store->set('aws_upload_triggered', 1);
+      return $response;
+    }
+
+    if ($operation == "add") {
+      $bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
+      $bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($bucket_id);
+      $bucket = $bucket_entity->label();
+      $path_to_store = $form_state->getValue('field_path')[0]['value'];
+
+      // Get the file form selector, assumed to be an ID.
+      $file_form_selector = '#' . $form['file_fieldset']['file']['#attributes']['id'];
+      $response = new AjaxResponse();
+      $response->addCommand(new InvokeCommand(NULL, 'uploadCallback', [
+        $file_form_selector, $local_file_path, $bucket, $path_to_store,
+      ]));
+      $this->store->set('aws_upload_triggered', 1);
+      return $response;
+    }
+
   }
 
   /**
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-    $entity = $this->entity;
+    $upload_triggered = $this->store->get('aws_upload_triggered') ?? 0;
 
-    // Save as a new revision if requested to do so.
-    if (!$form_state->isValueEmpty('new_revision') && $form_state->getValue('new_revision') != FALSE) {
-      $entity->setNewRevision();
+    if ($upload_triggered == 1) {
+      $entity = $this->entity;
 
-      // If a new revision is created, save the current user as revision author.
-      $entity->setRevisionCreationTime($this->time->getRequestTime());
-      $entity->setRevisionUserId($this->account->id());
+      // Save as a new revision if requested to do so.
+      if (!$form_state->isValueEmpty('new_revision') && $form_state->getValue('new_revision') != FALSE) {
+        $entity->setNewRevision();
+  
+        // If a new revision is created, save the current user as revision author.
+        $entity->setRevisionCreationTime($this->time->getRequestTime());
+        $entity->setRevisionUserId($this->account->id());
+      }
+      else {
+        $entity->setNewRevision(FALSE);
+      }
+  
+      $status = parent::save($form, $form_state);
+  
+      switch ($status) {
+        case SAVED_NEW:
+          $this->messenger()->addMessage($this->t('Created the %label Aws file.', [
+            '%label' => $entity->label(),
+          ]));
+          break;
+  
+        default:
+          $this->messenger()->addMessage($this->t('Saved the %label Aws file.', [
+            '%label' => $entity->label(),
+          ]));
+      }
+      $this->store->delete('aws_upload_triggered');
+      $form_state->setRedirect('entity.aws_file.canonical', ['aws_file' => $entity->id()]);
     }
-    else {
-      $entity->setNewRevision(FALSE);
-    }
 
-    $status = parent::save($form, $form_state);
-
-    switch ($status) {
-      case SAVED_NEW:
-        $this->messenger()->addMessage($this->t('Created the %label Aws file.', [
-          '%label' => $entity->label(),
-        ]));
-        break;
-
-      default:
-        $this->messenger()->addMessage($this->t('Saved the %label Aws file.', [
-          '%label' => $entity->label(),
-        ]));
-    }
-    $form_state->setRedirect('entity.aws_file.canonical', ['aws_file' => $entity->id()]);
+    
   }
 
 }
