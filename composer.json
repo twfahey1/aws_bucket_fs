@@ -1,5 +1,5 @@
 {
-    "name": "aws_bucket_fs",
+    "name": "drupal/aws_bucket_fs",
     "type": "drupal-module",
     "description": "Provides an AWS bucket as a filesystem. Supports large files direct to S3 via POST.",
     "keywords": [
