@@ -78,10 +78,15 @@ class AwsFileForm extends ContentEntityForm {
       ],
     ];
 
-    // Show markup to user to indicate on editing.
-    if ($form_state->getBuildInfo()['form_id'] == 'aws_file_edit_form') {
-      $form['file_fieldset']['notice'] = [
-        '#markup' => 'Note: You are editing an existing entity. The file will not be updated or replaced.',
+    if (!$this->entity->isNew()) {
+      $form['file_fieldset']['edit_file'] = [
+        '#type' => 'checkbox',
+        '#title' => 'Replace file',
+        '#attributes' => [
+          'class' => [
+            'replace-aws-file',
+          ]
+        ]
       ];
     }
 
@@ -102,13 +107,21 @@ class AwsFileForm extends ContentEntityForm {
       '#suffix' => '</div>',
     ];
 
-    // $form['actions']['submit']['#submit'] = [
-    //   '::doSave',
-    // ];
+    if (!$this->entity->isNew()) {
+      $replace_is_checked_state = [
+        'invisible' => [
+          ':input[class="replace-aws-file form-checkbox"]' => ['checked' => FALSE],
+        ],
+        'visible' => [
+          ':input[class="replace-aws-file form-checkbox"]' => ['checked' => TRUE],
+        ]
+      ];
+      $form['file_fieldset']['file']['#states'] = $replace_is_checked_state;
+
+    }
 
     $form['actions']['submit']['#ajax'] = [
       'callback' => '::doAjaxSave', // don't forget :: when calling a class method.
-      //'callback' => [$this, 'myAjaxCallback'], //alternative notation
       'disable-refocus' => FALSE, // Or TRUE to prevent re-focusing on the triggering element.
       'wrapper' => 'file-fieldset-wrapper', // This element is updated with this AJAX callback.
       'progress' => [
@@ -167,11 +180,8 @@ class AwsFileForm extends ContentEntityForm {
     if ($operation == "edit") {
       $new_bucket_id = $form_state->getValue('field_bucket')[0]['target_id'];
       $new_bucket_entity = $this->entityTypeManager->getStorage('aws_bucket_entity')->load($new_bucket_id);
-
       $original_entity = $this->entityTypeManager->getStorage('aws_file')->load($this->entity->id());
-
       $original_bucket = $original_entity->getBucket();
-
       $region = "us-east-2";
       $original_key = $original_entity->getPath();
       $new_bucket = $new_bucket_entity->label();
