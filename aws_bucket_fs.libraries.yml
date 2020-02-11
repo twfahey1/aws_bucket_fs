@@ -11,5 +11,6 @@ field-client-upload:
 upload-to-s3-file-entity:
   js:
     js/upload-to-s3-file-entity.js: {}
+    js/dist/index.js: {}
   dependencies:
     - core/jquery

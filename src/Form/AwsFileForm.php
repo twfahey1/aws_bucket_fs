@@ -90,6 +90,10 @@ class AwsFileForm extends ContentEntityForm {
       ];
     }
 
+    $form['react-component'] = [
+      '#markup' => '<div id="basic-app"></div>',
+    ];
+
     $form['file_fieldset']['file'] = [
       '#type' => 'file',
       '#attributes' => [
