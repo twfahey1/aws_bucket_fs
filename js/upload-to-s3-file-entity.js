@@ -7,7 +7,7 @@
     $('#aws-file-add-form').trigger('submit');
   }
   function doUpload(form_element, local_file_path, bucket, path_to_store) {
-    var upload = $.ajax({
+    return $.ajax({
       method: "GET",
       url: "/rest/session/token",
       success: function(token) {
@@ -68,11 +68,10 @@
         })
       }
     });
-    return upload;
   }
   $.fn.uploadCallback = function(form_element, local_file_path, bucket, path_to_store) {
     console.log("doing upload of " + local_file_path);
-    var upload = doUpload(form_element, local_file_path, bucket, path_to_store).done(submitEntityForm());
+    return doUpload(form_element, local_file_path, bucket, path_to_store).done(submitEntityForm());
   }
 
 

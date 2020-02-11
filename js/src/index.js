@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import Page from './components/Page';
+import UploadBlock from './components/UploadBlock';
 
 ReactDOM.render(
-<Page />,
+<UploadBlock />,
   document.getElementById('basic-app')
 );

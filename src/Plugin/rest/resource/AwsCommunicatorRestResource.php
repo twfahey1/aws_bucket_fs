@@ -53,12 +53,13 @@ class AwsCommunicatorRestResource extends ResourceBase {
    *   Throws exception expected.
    */
   public function post($payload) {
+    // $payload = json_decode($payload);
     // You must to implement the logic of your REST Resource here.
     // Use current user after pass authentication to validate access.
     // if (!$this->currentUser->hasPermission('access content')) {
     //     throw new AccessDeniedHttpException();
     // }
-
+    
     if (!isset($payload['operation'])) {
       $return_payload = [
         'error' => 'No "operation" key specified. Unable to take any action.',
